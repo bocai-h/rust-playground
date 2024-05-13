@@ -288,6 +288,8 @@ const UploadToNodeButton: React.FC = () => {
           jsonrpc: '2.0',
           method: 'rpc-add-new-image',
           params: {
+            user_address: local_account.address,
+            signature: sign,
             image: image,
             image_md5: image_md5,
           },

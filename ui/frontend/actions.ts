@@ -138,7 +138,8 @@ export function indexPageLoad({
   edition?: string;
 }): ThunkAction {
   return function (dispatch) {
-    const channel = parseChannel(version) || Channel.Stable;
+    // const channel = parseChannel(version) || Channel.Stable;
+    const channel = parseChannel(version) || Channel.Nightly;
     const mode = parseMode(modeString) || Mode.Release;
     let maybeEdition = parseEdition(editionString);
 

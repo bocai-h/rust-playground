@@ -283,7 +283,10 @@ const UploadToNodeButton: React.FC = () => {
         // const image = btoa(wasm.code + sign);
         // const image = btoa(`\0asm${wasm.code}`);
         const image = wasm.code;
-        const image_md5 = MD5(image).toString().toUpperCase();
+        const recoverWasmCodeFromBase64 = atob(image);
+        console.log("########")
+        console.log(recoverWasmCodeFromBase64)
+        const image_md5 = MD5(recoverWasmCodeFromBase64).toString().toUpperCase();
         const payload = {
           jsonrpc: '2.0',
           method: 'rpc-add-new-image',

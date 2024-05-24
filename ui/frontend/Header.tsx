@@ -2,6 +2,7 @@ import { useSDK } from '@metamask/sdk-react';
 import { Buffer } from 'buffer';
 import { MD5, enc } from 'crypto-js';
 import React, { RefObject, useCallback, useEffect, useRef } from 'react';
+import { Bounce, ToastContainer, toast } from 'react-toastify';
 
 import AdvancedOptionsMenu from './AdvancedOptionsMenu';
 import BuildMenu from './BuildMenu';
@@ -28,6 +29,7 @@ import { navigateToHelp } from './reducers/page';
 import * as selectors from './selectors';
 
 import styles from './Header.module.css';
+import 'react-toastify/dist/ReactToastify.css';
 
 const Header: React.FC = () => {
   const menuContainer = useRef<HTMLDivElement | null>(null);
@@ -73,6 +75,23 @@ const Header: React.FC = () => {
             <HelpButton />
           </ButtonSet>
         </div>
+      </div>
+      <div>
+        <ToastContainer
+          position="top-right"
+          autoClose={5000}
+          hideProgressBar={false}
+          newestOnTop={false}
+          closeOnClick
+          rtl={false}
+          pauseOnFocusLoss
+          draggable
+          pauseOnHover
+          theme="light"
+          transition={Bounce}
+        />
+        {/* Same as */}
+        <ToastContainer />
       </div>
 
       <div ref={menuContainer} />
@@ -268,6 +287,62 @@ const UploadToNodeButton: React.FC = () => {
   const { wasm } = useAppSelector((state) => state.output);
   const is_active = local_account && wasm.code;
   const { provider } = useSDK();
+  interface Error {
+    code: number;
+    message: string;
+  }
+  interface ErrorResponse {
+    jsonrpc: string;
+    error: Error;
+  }
+  interface Info {
+    md5: string;
+  }
+  interface SuccessResponse {
+    jsonrpc: string;
+    result: Info;
+  }
+  interface ErrorObject {
+    message: string;
+  }
+  const notify = (msg: SuccessResponse) =>
+    toast.info(`Upload success##md5: ${msg.result.md5}`, {
+      position: 'top-right',
+      autoClose: 10000,
+      hideProgressBar: false,
+      closeOnClick: true,
+      pauseOnHover: true,
+      draggable: true,
+      progress: undefined,
+      theme: 'light',
+      transition: Bounce,
+    });
+
+  const notify_error = (err: ErrorResponse) =>
+    toast.error(err.error.message, {
+      position: 'top-right',
+      autoClose: 10000,
+      hideProgressBar: false,
+      closeOnClick: true,
+      pauseOnHover: true,
+      draggable: true,
+      progress: undefined,
+      theme: 'light',
+      transition: Bounce,
+    });
+
+  const notify_catch_error = (err: ErrorObject) =>
+    toast.error(err.message, {
+      position: 'top-right',
+      autoClose: 10000,
+      hideProgressBar: false,
+      closeOnClick: true,
+      pauseOnHover: true,
+      draggable: true,
+      progress: undefined,
+      theme: 'light',
+      transition: Bounce,
+    });
 
   const uploadWASMToNode = async () => {
     if (local_account && wasm.code) {
@@ -284,7 +359,7 @@ const UploadToNodeButton: React.FC = () => {
         // const image = btoa(`\0asm${wasm.code}`);
         const image = wasm.code;
         const data = enc.Base64.parse(image);
-	      const image_md5 = MD5(data).toString(enc.Hex).toUpperCase();
+        const image_md5 = MD5(data).toString(enc.Hex).toUpperCase();
         const payload = {
           jsonrpc: '2.0',
           method: 'rpc-add-new-image',
@@ -298,9 +373,15 @@ const UploadToNodeButton: React.FC = () => {
         console.log('payload: ', payload);
         const d = await jsonPost(routes.uploadWasm, payload);
         console.log('uploadWASMToNode response: ', d);
-        
+
+        if ((d as ErrorResponse).error) {
+          notify_error(d as ErrorResponse);
+        } else {
+          notify(d as SuccessResponse);
+        }
       } catch (err) {
         console.warn(`failed to connect..`, err);
+        notify_catch_error(err as ErrorObject);
       }
     } else {
       console.warn(`WASM code not exists..`);

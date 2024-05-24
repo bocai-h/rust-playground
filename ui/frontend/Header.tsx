@@ -1,6 +1,6 @@
 import { useSDK } from '@metamask/sdk-react';
 import { Buffer } from 'buffer';
-import { MD5 } from 'crypto-js';
+import { MD5, enc } from 'crypto-js';
 import React, { RefObject, useCallback, useEffect, useRef } from 'react';
 
 import AdvancedOptionsMenu from './AdvancedOptionsMenu';
@@ -283,10 +283,8 @@ const UploadToNodeButton: React.FC = () => {
         // const image = btoa(wasm.code + sign);
         // const image = btoa(`\0asm${wasm.code}`);
         const image = wasm.code;
-        const recoverWasmCodeFromBase64 = atob(image);
-        console.log("########")
-        console.log(recoverWasmCodeFromBase64)
-        const image_md5 = MD5(recoverWasmCodeFromBase64).toString().toUpperCase();
+        const data = enc.Base64.parse(image);
+	      const image_md5 = MD5(data).toString(enc.Hex).toUpperCase();
         const payload = {
           jsonrpc: '2.0',
           method: 'rpc-add-new-image',
@@ -300,6 +298,7 @@ const UploadToNodeButton: React.FC = () => {
         console.log('payload: ', payload);
         const d = await jsonPost(routes.uploadWasm, payload);
         console.log('uploadWASMToNode response: ', d);
+        
       } catch (err) {
         console.warn(`failed to connect..`, err);
       }

@@ -371,7 +371,10 @@ const UploadToNodeButton: React.FC = () => {
           },
         };
         console.log('payload: ', payload);
+        const id = toast.loading("Please wait...")
         const d = await jsonPost(routes.uploadWasm, payload);
+        toast.update(id, { render: "All is good", type: "success", isLoading: false, autoClose: 1000 });
+
         console.log('uploadWASMToNode response: ', d);
 
         if ((d as ErrorResponse).error) {
